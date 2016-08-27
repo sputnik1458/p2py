@@ -2,7 +2,7 @@
 Completely decentralized cli-based P2P chat
 
 ## About
-The prorgam uses Python 2.7 and the built-in sockets module. In order to achieve total decentralization, no rendezvous server mediates the connection between the two computers. Rather, each computer attempts to directly connect to each other using their respected external IP addresses.
+The program uses Python 2.7 and its built-in sockets module. In order to achieve total decentralization, no rendezvous server mediates the connection between the two computers. Rather, each computer attempts to directly connect to each other using their respected external IP addresses.
 
 P2P protocol is acheived by implementing UDP hole punching, simultaneously eliminating the need for a centralized server and port forwarding.
 
