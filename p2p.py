@@ -1,46 +1,96 @@
 #!/usr/bin/env python
-import socket
+import socket, pickle
 from multiprocessing import Process
 
-port = 6311
-ip = 'Enter remote host: '
+contacts = pickle.load(open( "contacts.txt", "rb" ))
 
+port = 6311
 
 
 def main():
-    #remoteHost = raw_input("Remote Host: ")
+    action = raw_input('Chat or Contacts? ')
+    if action == 'chat':
+        chat()
+    elif action == 'contacts':
+         Contacts()
+    else:
+        print 'Not a valid action\n'
+        main()
+
+
+def chat():
+    contact = raw_input("Chat w/: ")
+    ip = contacts[contact]
     punch(ip)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('', port))
-    p1 = Process(target = Server, args = (sock,))
+    p1 = Process(target = Server, args = (ip, sock,))
     p1.start()
-    while True:
-        message = raw_input()
-        p2 = Process(target = Client, args = (message, sock,))
-        p2.start()
+    Client(ip, sock)
 
-def punch(host):
+def punch(host): ## UDP hole puch
 
-    hole = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    hole.bind(('', port))
-    hole.sendto('', (host, port))
-    hole.close()
+    punch = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    punch.bind(('', port))
+    punch.sendto('', (host, port))
+    punch.close()
 
-def Server(s):
+def Server(host, s): ## listens for incoming messages
+    connected = False
 
     while True: 
         data, addr = s.recvfrom(1024)
-        print '>> ' + data
+        if connected == False:
+            print 'Connected to %s' % host
+            s.sendto('', (host, port))
+            connected = True
+        elif data == '':
+            pass
+        else:
+            print '>> ' + data
 
-def Client(m, s):
-   # print 'client'
+def Client(host, s): ## send messages
     
-   # while True:
-    #    try:
-     #       message = raw_input()
-      #      s.sendto(message, (ip, port))
-       # except EOFError:
-        #    pass
-    s.sendto(m, (ip ,port))
+    while True:
+        message = raw_input()
+        s.sendto(message, (host, port))
+
+
+def Contacts():
+    
+    choice = raw_input('Add, remove, edit, view or return? ')    
+    
+    if choice == 'add':
+        name = raw_input('Name: ')
+        host = raw_input('IP/Hostname: ')
+        contacts[name] = host
+    elif choice == 'remove':
+        name = raw_input("Name: ")
+        contacts.pop(name, None)
+    elif choice == 'edit':
+        contact = raw_input('Enter contact name: ')
+        host = contacts[contact]
+        choice2 = raw_input('Edit name or IP? ').lower()
+        if choice2 == 'name':
+            newName = raw_input('Enter new name: ')
+            contacts[newName] = contacts.pop(contact)
+        elif choice2 == 'ip':
+            newIP = raw_input('Enter new IP: ')
+            contacts.pop(contact, None)
+            contacts[contact] = newIP
+    elif choice == 'view':
+        print ''
+        for contact in contacts:
+            print '%s: %s' % (contact, contacts[contact])
+        print ''
+    elif choice == 'return':
+        main()
+    else:
+        print 'Not a valid action.'
+        Contacts()
+    if choice != 'view':
+        pickle.dump(contacts, open("contacts.txt", "wb"))
+        print 'Contacts saved.'
+    Contacts()
 
 main()
