@@ -13,9 +13,7 @@ As of now, both users must run the program within a short time period (< 3 minut
 
 
 ## To-Do
-* Add a "Connected" message when the computers connect to each other. 
-* Fix message overwrite bug
-* Add a contact system
+* Fix message overwrite bug (possibly through ncurses)
 * Add end-to-end encryption
 * Implement missed message saving
 * Create an executable for Windows
