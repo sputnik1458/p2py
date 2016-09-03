@@ -16,7 +16,7 @@ You may either create a Contacts entry for the computer you are trying to commun
 Because there is no defined UI, messages that you receive and messages that you are typing will overlap with each other. This will be fixed with the implementation of Curses as a CLI and the development of a GUI.  
 
 ## To-Do
-* Add Curses CLI
+* Add Curses CLI and GUI
 * Implement missed message saving
 * Create an executable for Windows
 * Implement group chats
