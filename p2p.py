@@ -1,33 +1,59 @@
 #!/usr/bin/env python
-import socket, pickle
+import socket, pickle, sys
+from Crypto.PublicKey import RSA
+from Crypto import Random
 from multiprocessing import Process
 
-contacts = pickle.load(open( "contacts.txt", "rb" ))
+contacts = pickle.load(open("contacts.txt", "rb"))
 
 port = 6311
 
-
 def main():
-    action = raw_input('Chat or Contacts? ')
+    action = raw_input('Chat, contacts, or exit? ')
     if action == 'chat':
         chat()
     elif action == 'contacts':
          Contacts()
+    elif action == 'exit':
+        sys.exit()
     else:
         print 'Not a valid action\n'
         main()
 
+def gen_key(): ## generates 1024 bit RSA key
+    random_gen = Random.new().read
+    key = RSA.generate(2048, random_gen)
+    return key
 
 def chat():
     contact = raw_input("Chat w/: ")
-    ip = contacts[contact]
+    if contact in contacts:
+        ip = contacts[contact] 
+    else:
+        ip = contact
     punch(ip)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('', port))
-    p1 = Process(target = Server, args = (ip, sock,))
-    p1.start()
-    Client(ip, sock)
+    host_pubkey = key_exchange(sock, ip)
+    process = Process(target = Server, args = (ip, sock,))
+    process.start()
+    Client(ip, sock, host_pubkey, process)
 
+def key_exchange(s, host): ## exchanges public keys with remote host
+    host_pubkey_received = False
+    test = False
+    while host_pubkey_received == False:
+        s.sendto(public_key.exportKey(), (host, port))
+        data = s.recv(1024)
+        try:
+            host_key = RSA.importKey(data)
+            host_pubkey_received = True
+        except:
+            pass
+
+    return host_key
+        
+        
 def punch(host): ## UDP hole puch
 
     punch = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -36,24 +62,38 @@ def punch(host): ## UDP hole puch
     punch.close()
 
 def Server(host, s): ## listens for incoming messages
+    Random.atfork()
     connected = False
+    
+    s.sendto('', (host, port))
 
     while True: 
-        data, addr = s.recvfrom(1024)
+        data = s.recv(1024)
         if connected == False:
             print 'Connected to %s' % host
             s.sendto('', (host, port))
             connected = True
         elif data == '':
             pass
+        elif data == 'exitcode':
+            print 'User disconnected. Type "exit" to exit.'
+            break
         else:
-            print '>> ' + data
+            dec = private_key.decrypt(data)
+            print '>> ' + dec
 
-def Client(host, s): ## send messages
+def Client(host, s, pk, server_process): ## send messages
     
     while True:
         message = raw_input()
-        s.sendto(message, (host, port))
+        if message == 'exit':
+            s.sendto('exitcode', (host, port))
+            server_process.terminate()
+            s.close()
+            main()
+        else:
+            enc = pk.encrypt(message, 32)[0]
+            s.sendto(str(enc), (host, port))
 
 
 def Contacts():
@@ -92,5 +132,8 @@ def Contacts():
         pickle.dump(contacts, open("contacts.txt", "wb"))
         print 'Contacts saved.'
     Contacts()
+
+private_key = gen_key()
+public_key = private_key.publickey()
 
 main()
