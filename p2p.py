@@ -3,6 +3,7 @@ import socket, pickle, sys
 from Crypto.PublicKey import RSA
 from Crypto import Random
 from multiprocessing import Process
+from termcolor import colored
 
 contacts = pickle.load(open("contacts.txt", "rb"))
 
@@ -20,7 +21,7 @@ def main():
         print 'Not a valid action\n'
         main()
 
-def gen_key(): ## generates 1024 bit RSA key
+def gen_key(): ## generates 2048 bit RSA key
     random_gen = Random.new().read
     key = RSA.generate(2048, random_gen)
     return key
@@ -31,13 +32,14 @@ def chat():
         ip = contacts[contact] 
     else:
         ip = contact
+    print "Connecting..."
     punch(ip)
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # creates UDP socket object
     sock.bind(('', port))
     host_pubkey = key_exchange(sock, ip)
-    process = Process(target = Server, args = (ip, sock,))
-    process.start()
-    Client(ip, sock, host_pubkey, process)
+    process = Process(target = server, args = (ip, sock, contact,)) # creates Server subprocess  
+    process.start() # starts Server subprocess
+    client(ip, sock, host_pubkey, process)
 
 def key_exchange(s, host): ## exchanges public keys with remote host
     host_pubkey_received = False
@@ -46,7 +48,7 @@ def key_exchange(s, host): ## exchanges public keys with remote host
         s.sendto(public_key.exportKey(), (host, port))
         data = s.recv(1024)
         try:
-            host_key = RSA.importKey(data)
+            host_key = RSA.importKey(data) # checks to see if data is a RSA public key
             host_pubkey_received = True
         except:
             pass
@@ -61,7 +63,7 @@ def punch(host): ## UDP hole puch
     punch.sendto('', (host, port))
     punch.close()
 
-def Server(host, s): ## listens for incoming messages
+def server(host, s, con): ## listens for incoming messages
     Random.atfork()
     connected = False
     
@@ -70,7 +72,7 @@ def Server(host, s): ## listens for incoming messages
     while True: 
         data = s.recv(1024)
         if connected == False:
-            print 'Connected to %s' % host
+            print 'Connected to %s\n' % host
             s.sendto('', (host, port))
             connected = True
         elif data == '':
@@ -80,16 +82,16 @@ def Server(host, s): ## listens for incoming messages
             break
         else:
             dec = private_key.decrypt(data)
-            print '>> ' + dec
+            print colored("%s: " % con, 'red') + dec
 
-def Client(host, s, pk, server_process): ## send messages
+def client(host, s, pk, server_process): ## send messages
     
     while True:
         message = raw_input()
         if message == 'exit':
             s.sendto('exitcode', (host, port))
-            server_process.terminate()
-            s.close()
+            server_process.terminate() # terminates the Server subprocess
+            s.close() # closes socket 
             main()
         else:
             enc = pk.encrypt(message, 32)[0]
@@ -133,7 +135,9 @@ def Contacts():
         print 'Contacts saved.'
     Contacts()
 
-private_key = gen_key()
-public_key = private_key.publickey()
 
-main()
+if __name__ == "__main__":
+
+    private_key = gen_key()
+    public_key = private_key.publickey()
+    main()

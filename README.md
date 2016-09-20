@@ -15,6 +15,7 @@ You may either create a Contacts entry for the computer you are trying to commun
 
 Because there is no defined UI, messages that you receive and messages that you are typing will overlap with each other. This will be fixed with the implementation of Curses as a CLI and the development of a GUI.  
 
+To exit out of a chat, simply type "exit". This will currently only work if you are already connected. If you are still connecting and wish to exit, you must completely exit the program with Ctrl-c.
 ## To-Do
 * Add Curses CLI and GUI
 * Implement missed message saving
