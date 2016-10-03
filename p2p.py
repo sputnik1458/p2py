@@ -6,20 +6,38 @@ from multiprocessing import Process
 from termcolor import colored
 
 contacts = pickle.load(open("contacts.txt", "rb"))
-
+hosts = contacts.values()
 port = 6311
 
 def main():
-    action = raw_input('Chat, contacts, or exit? ')
+    action = raw_input('Chat, contacts, view, or exit? ')
     if action == 'chat':
         chat()
     elif action == 'contacts':
          Contacts()
     elif action == 'exit':
+        c.send("STATUS offline")
         sys.exit()
+    elif action == "view":
+        peers()
+        main()
     else:
         print 'Not a valid action\n'
         main()
+
+def peers(): # gets a list of available peers
+    	c.send("GET aval_peers")
+        data = c.recv(1024)
+        peers = pickle.loads(data) # loads peer list
+        for peer in peers:
+            if peer in hosts: # checks to see if peer in known
+                if peers[peer] == True: # online
+                    print "%s: " % contacts.keys()[contacts.values().index(peer)] + colored('online', 'green')
+                elif peers[peer] == False: # offline
+                    print "%s: " % contacts.keys()[contacts.values().index(peer)] + colored('offline', 'red')
+                else:
+                    print "n/a"
+        print ''
 
 def gen_key(): ## generates 2048 bit RSA key
     random_gen = Random.new().read
@@ -77,25 +95,24 @@ def server(host, s, con): ## listens for incoming messages
             connected = True
         elif data == '':
             pass
-        elif data == 'exitcode':
-            print 'User disconnected. Type "exit" to exit.'
-            break
         else:
             dec = private_key.decrypt(data)
-            print colored("%s: " % con, 'red') + dec
+            if dec == 'exit':
+                print 'User disconnected. Type "exit" to exit.'
+                break
+            else:
+                 print colored("%s: " % con, 'red') + dec
 
 def client(host, s, pk, server_process): ## send messages
     
     while True:
         message = raw_input()
-        if message == 'exit':
-            s.sendto('exitcode', (host, port))
-            server_process.terminate() # terminates the Server subprocess
-            s.close() # closes socket 
+        enc = pk.encrypt(message, 32)[0]
+        s.sendto(str(enc), (host, port))
+        if message == "exit":
+            server_process.terminate()  # terminates the Server subprocess
+            s.close()  # closes socket 
             main()
-        else:
-            enc = pk.encrypt(message, 32)[0]
-            s.sendto(str(enc), (host, port))
 
 
 def Contacts():
@@ -137,7 +154,11 @@ def Contacts():
 
 
 if __name__ == "__main__":
-
+    c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    c.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    c.bind(("", 31459))
+    c.connect(("99.38.224.215", 31459))
+    c.send("STATUS online")
     private_key = gen_key()
     public_key = private_key.publickey()
     main()

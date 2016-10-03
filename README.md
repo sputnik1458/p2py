@@ -8,17 +8,24 @@ P2P protocol is acheived by implementing UDP hole punching, simultaneously elimi
 
 This program uses 2048 bit RSA encryption, and no party except you has access to your private key.
 
+This program communicates with nodes for the purpose of keeping track of who is online.
+
 ## Usage
-You must know each other's external IP address. You can retrieve your own by running `dig +short myip.opendns.com @resolver1.opendns.com`
+You must know each other's external IP address. You can retrieve your own by running `dig +short myip.opendns.com @resolver1.opendns.com` in a shell. 
 
 You may either create a Contacts entry for the computer you are trying to communicate with, or you can just directly enter the IP address or hostname.
 
-Because there is no defined UI, messages that you receive and messages that you are typing will overlap with each other. This will be fixed with the implementation of Curses as a CLI and the development of a GUI.  
+To exit out of a chat, simply type "exit". 
 
-To exit out of a chat, simply type "exit". This will currently only work if you are already connected. If you are still connecting and wish to exit, you must completely exit the program with Ctrl-c.
+## Issues
+* Message overlap
+* Node software interfering with client if ran together
+* Inability to easily exit out of an attempted connection
+
 ## To-Do
-* Add Curses CLI and GUI
-* Implement missed message saving
-* Create an executable for Windows
-* Implement group chats
-* Implement file-sharing
+* Curses CLI and GUI
+* Offline message reception
+* Windows executable
+* Group chats
+* File-sharing
+* Node communication opt-out
