@@ -1,4 +1,4 @@
-# p2p-chat
+# p2py
 Completely decentralized cli-based P2P chat
 
 ## About
