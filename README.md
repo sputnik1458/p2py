@@ -19,7 +19,6 @@ To exit out of a chat, simply type "exit".
 
 ## Issues
 * Message overlap
-* Node software interfering with client if ran together
 * Inability to easily exit out of an attempted connection
 
 ## To-Do

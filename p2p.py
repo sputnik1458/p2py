@@ -8,6 +8,8 @@ from termcolor import colored
 contacts = pickle.load(open("contacts.txt", "rb"))
 hosts = contacts.values()
 port = 6311
+port2 = 6312
+node = ("99.38.224.215", 31460)
 
 def main():
     action = raw_input('Chat, contacts, view, or exit? ')
@@ -16,7 +18,7 @@ def main():
     elif action == 'contacts':
          Contacts()
     elif action == 'exit':
-        c.send("STATUS offline")
+        c.sendto("STATUS offline", node)
         sys.exit()
     elif action == "view":
         peers()
@@ -26,14 +28,15 @@ def main():
         main()
 
 def peers(): # gets a list of available peers
-    	c.send("GET aval_peers")
+        c.sendto("GET aval_peers", node)
         data = c.recv(1024)
-        peers = pickle.loads(data) # loads peer list
-        for peer in peers:
+    
+        peer_list = pickle.loads(data) # loads peer list
+        for peer in peer_list:
             if peer in hosts: # checks to see if peer in known
-                if peers[peer] == True: # online
+                if peer_list[peer] == True: # online
                     print "%s: " % contacts.keys()[contacts.values().index(peer)] + colored('online', 'green')
-                elif peers[peer] == False: # offline
+                elif peer_list[peer] == False: # offline
                     print "%s: " % contacts.keys()[contacts.values().index(peer)] + colored('offline', 'red')
                 else:
                     print "n/a"
@@ -154,11 +157,9 @@ def Contacts():
 
 
 if __name__ == "__main__":
-    c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    c.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    c.bind(("", 31459))
-    c.connect(("99.38.224.215", 31459))
-    c.send("STATUS online")
-    private_key = gen_key()
+    c = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # this socket is for node communication
+    c.bind(("", port2))
+    c.sendto("STATUS online", node) # broadcast that this peer is online to node
+    private_key = gen_key() # generates keys
     public_key = private_key.publickey()
     main()
