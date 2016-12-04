@@ -8,12 +8,8 @@ P2P protocol is acheived by implementing UDP hole punching, simultaneously elimi
 
 This program uses 2048 bit RSA encryption, and no party except you has access to your private key.
 
-This program communicates with nodes for the purpose of keeping track of who is online.
-
 ## Usage
 You must know each other's external IP address. You can retrieve your own by running `dig +short myip.opendns.com @resolver1.opendns.com` in a shell. 
-
-You may either create a Contacts entry for the computer you are trying to communicate with, or you can just directly enter the IP address or hostname.
 
 To exit out of a chat, simply type "exit". 
 
@@ -22,9 +18,9 @@ To exit out of a chat, simply type "exit".
 * Inability to easily exit out of an attempted connection
 
 ## To-Do
+* Contacts
 * Curses CLI and GUI
 * Offline message reception
-* Windows executable
 * Group chats
 * File-sharing
 * Node communication opt-out
