@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 import socket, pickle, sys, os
@@ -72,7 +72,6 @@ def server(host, s):
                 print(colored("%s: "% host, "red") + dec.decode("UTF-8"))
 
 def client(host, s, hostPubKey, serverProcess):
-
     while True:
         m = str(input())
         enc = hostPubKey.encrypt(m.encode("UTF-8"), 32)[0]
@@ -83,11 +82,9 @@ def client(host, s, hostPubKey, serverProcess):
             main()
             
 if __name__ == "__main__":
-
     port = 6311
     HOME = os.environ['HOME']
     keys = pickle.load(open(HOME + "/.p2py/keys", "rb"))
     privKey = RSA.importKey(keys[0])
     pubKey = RSA.importKey(keys[1])
-
     main()
