@@ -8,8 +8,12 @@ P2P protocol is acheived by implementing UDP hole punching, simultaneously elimi
 
 This program uses 2048 bit RSA encryption, and no party except you has access to your private key.
 
+Currently only fuctioning on Linux. 
+
 ## Usage
 You must know each other's external IP address. You can retrieve your own by running `dig +short myip.opendns.com @resolver1.opendns.com` in a shell. 
+
+Run `keygen.py` to create a keyfile.
 
 To exit out of a chat, simply type "exit". 
 
@@ -23,4 +27,3 @@ To exit out of a chat, simply type "exit".
 * Offline message reception
 * Group chats
 * File-sharing
-* Node communication opt-out

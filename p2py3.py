@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 import socket, pickle, sys, os
 from Crypto.PublicKey import RSA
 from Crypto import Random
@@ -25,22 +24,22 @@ def chat():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(("", port))
     hostPubKey = keyExchange(sock, ip)
-    serverProcess = Process(target=server, args=(ip, sock,))
+    serverProcess = Process(target=server, args=(ip, sock,)) # creates server subprocess
     serverProcess.start()
     client(ip, sock, hostPubKey, serverProcess)
 
-def punch(host):
+def punch(host): # UDP Hole Punching
     p = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     p.bind((b'', port))
     p.sendto(b'', (host, port))
     p.close()
 
-def keyExchange(s, host):
+def keyExchange(s, host): # exchanges public keys with remote host
     keyReceived = False
     while keyReceived == False:
-        s.sendto(pubKey.exportKey(), (host, port))
+        s.sendto(pubKey.exportKey(), (host, port)) # sends own pblic key
         data = s.recv(1024)
-        try:
+        try: # verifies if data is a public key
             hostKey = RSA.importKey(data)
             keyReceived = True
         except:
@@ -53,11 +52,11 @@ def server(host, s):
     Random.atfork()
     connected = False
 
-    s.sendto(b"", (host, port))
+    s.sendto(b"", (host, port)) # attempts connection
 
     while True:
         data = s.recv(1024)
-        if connected == False:
+        if connected == False: # no previous data received
             print("Connected to %s\n" % host)
             s.sendto(b"", (host, port))
             connected = True
@@ -74,8 +73,8 @@ def server(host, s):
 def client(host, s, hostPubKey, serverProcess):
     while True:
         m = str(input())
-        enc = hostPubKey.encrypt(m.encode("UTF-8"), 32)[0]
-        s.sendto(enc, (host, port))
+        enc = hostPubKey.encrypt(m.encode("UTF-8"), 32)[0] # encrypts message
+        s.sendto(enc, (host, port)) # sends message
         if m == "exit":
             serverProcess.terminate()
             s.close()
@@ -84,7 +83,7 @@ def client(host, s, hostPubKey, serverProcess):
 if __name__ == "__main__":
     port = 6311
     HOME = os.environ['HOME']
-    keys = pickle.load(open(HOME + "/.p2py/keys", "rb"))
+    keys = pickle.load(open(HOME + "/.p2py/keys", "rb")) # loads keys from keyfile
     privKey = RSA.importKey(keys[0])
     pubKey = RSA.importKey(keys[1])
     main()
